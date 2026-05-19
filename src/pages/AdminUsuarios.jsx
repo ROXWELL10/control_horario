@@ -140,6 +140,9 @@ export default function AdminUsuarios() {
                   </h4>
                   <p className="text-[11px] text-slate-400 font-medium">{user.cargo || 'Sin cargo asignado'}</p>
                   <p className="text-xs text-slate-500 font-mono pt-1 truncate">{user.email}</p>
+                  <p className="text-[11px] text-slate-500 font-mono truncate">
+                    {user.telefono_whatsapp ? `+${user.telefono_whatsapp}` : 'Sin celular registrado'}
+                  </p>
                 </div>
               </div>
 

@@ -77,6 +77,9 @@ export const dbService = {
             email: usuario.email,
             rol: usuario.rol,
             cargo: usuario.cargo,
+            telefono_codigo_pais: usuario.telefono_codigo_pais || null,
+            telefono_numero: usuario.telefono_numero || null,
+            telefono_whatsapp: usuario.telefono_whatsapp || null,
             activo: usuario.activo
           })
           .eq('id', usuario.id)

@@ -47,6 +47,9 @@ export const AppProvider = ({ children }) => {
           rol: metadata.rol || 'Empleado',
           avatar: nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
           cargo: metadata.cargo || 'Operario de Confección',
+          telefono_codigo_pais: metadata.telefono_codigo_pais || '',
+          telefono_numero: metadata.telefono_numero || '',
+          telefono_whatsapp: metadata.telefono_whatsapp || '',
           activo: true
         };
         await dbService.insertUsuario(profile);
@@ -196,9 +199,23 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const signUp = async (nombre, email, cargo, rol, password) => {
+  const signUp = async (nombre, email, cargo, rol, password, telefono = {}) => {
     if (!isSupabaseConfigured()) {
       // Local Mock Driver Register
+      const uList = await dbService.getUsuarios();
+      const emailExists = uList.some(u => u.email.toLowerCase() === email.toLowerCase());
+      const phoneExists = telefono.telefono_whatsapp
+        ? uList.some(u => u.telefono_whatsapp === telefono.telefono_whatsapp)
+        : false;
+
+      if (emailExists) {
+        return { error: { message: 'El correo electronico ya esta registrado.' } };
+      }
+
+      if (phoneExists) {
+        return { error: { message: 'Este celular ya esta registrado con otro usuario.' } };
+      }
+
       const newUser = {
         id: `u-${Date.now()}`,
         nombre,
@@ -206,6 +223,9 @@ export const AppProvider = ({ children }) => {
         rol,
         avatar: nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
         cargo,
+        telefono_codigo_pais: telefono.telefono_codigo_pais || '',
+        telefono_numero: telefono.telefono_numero || '',
+        telefono_whatsapp: telefono.telefono_whatsapp || '',
         activo: true,
         creado_en: new Date().toISOString()
       };
@@ -222,7 +242,10 @@ export const AppProvider = ({ children }) => {
           data: {
             nombre,
             cargo,
-            rol
+            rol,
+            telefono_codigo_pais: telefono.telefono_codigo_pais || '',
+            telefono_numero: telefono.telefono_numero || '',
+            telefono_whatsapp: telefono.telefono_whatsapp || ''
           }
         }
       });
@@ -237,6 +260,9 @@ export const AppProvider = ({ children }) => {
           rol,
           avatar: nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
           cargo,
+          telefono_codigo_pais: telefono.telefono_codigo_pais || '',
+          telefono_numero: telefono.telefono_numero || '',
+          telefono_whatsapp: telefono.telefono_whatsapp || '',
           activo: true
         };
         await dbService.insertUsuario(profile);

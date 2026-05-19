@@ -25,6 +25,9 @@ CREATE TABLE usuarios (
     rol TEXT NOT NULL CHECK (rol IN ('Empleado', 'Administrador')),
     avatar VARCHAR(10) NOT NULL,
     cargo TEXT,
+    telefono_codigo_pais VARCHAR(8),
+    telefono_numero VARCHAR(30),
+    telefono_whatsapp VARCHAR(40) UNIQUE,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     creado_en TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
@@ -107,6 +110,10 @@ ALTER TABLE anuncios ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Cualquier usuario autenticado puede leer usuarios" 
     ON usuarios FOR SELECT TO authenticated USING (true);
 
+CREATE POLICY "Usuarios pueden crear su propio perfil inicial"
+    ON usuarios FOR INSERT TO authenticated
+    WITH CHECK (id = auth.uid()::text);
+
 CREATE POLICY "Solo administradores pueden modificar usuarios" 
     ON usuarios FOR ALL TO authenticated 
     USING (EXISTS (SELECT 1 FROM usuarios u WHERE u.id = auth.uid()::text AND u.rol = 'Administrador'))
@@ -179,11 +186,11 @@ CREATE POLICY "Solo administradores pueden gestionar anuncios"
 -- ---------------------------------------------------------------------
 
 -- Usuarios Iniciales
-INSERT INTO usuarios (id, nombre, email, rol, avatar, cargo, activo) VALUES
-('u-1', 'Carlos Pérez', 'carlos.perez@sammersjeans.com', 'Empleado', 'CP', 'Operario de Confección', TRUE),
-('u-2', 'Laura Gómez', 'laura.gomez@sammersjeans.com', 'Administrador', 'LG', 'Directora de Operaciones / RRHH', TRUE),
-('u-3', 'Juan Torres', 'juan.torres@sammersjeans.com', 'Empleado', 'JT', 'Auxiliar de Logística', TRUE),
-('u-4', 'Valeria Restrepo', 'valeria.restrepo@sammersjeans.com', 'Empleado', 'VR', 'Diseñadora de Moda', FALSE);
+INSERT INTO usuarios (id, nombre, email, rol, avatar, cargo, telefono_codigo_pais, telefono_numero, telefono_whatsapp, activo) VALUES
+('u-1', 'Carlos Pérez', 'carlos.perez@sammersjeans.com', 'Empleado', 'CP', 'Operario de Confección', '+57', '3001234567', '573001234567', TRUE),
+('u-2', 'Laura Gómez', 'laura.gomez@sammersjeans.com', 'Administrador', 'LG', 'Directora de Operaciones / RRHH', '+57', '3011234567', '573011234567', TRUE),
+('u-3', 'Juan Torres', 'juan.torres@sammersjeans.com', 'Empleado', 'JT', 'Auxiliar de Logística', '+57', '3021234567', '573021234567', TRUE),
+('u-4', 'Valeria Restrepo', 'valeria.restrepo@sammersjeans.com', 'Empleado', 'VR', 'Diseñadora de Moda', '+57', '3031234567', '573031234567', FALSE);
 
 -- Motivos de Pausa
 INSERT INTO motivos_pausa (id, nombre, activo) VALUES

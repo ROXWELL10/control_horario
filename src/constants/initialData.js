@@ -6,6 +6,9 @@ export const DEFAULT_USERS = [
     rol: 'Empleado',
     avatar: 'CP',
     cargo: 'Operario de Confección',
+    telefono_codigo_pais: '+57',
+    telefono_numero: '3001234567',
+    telefono_whatsapp: '573001234567',
     activo: true
   },
   {
@@ -15,6 +18,9 @@ export const DEFAULT_USERS = [
     rol: 'Administrador',
     avatar: 'LG',
     cargo: 'Directora de Operaciones / RRHH',
+    telefono_codigo_pais: '+57',
+    telefono_numero: '3011234567',
+    telefono_whatsapp: '573011234567',
     activo: true
   },
   {
@@ -24,6 +30,9 @@ export const DEFAULT_USERS = [
     rol: 'Empleado',
     avatar: 'JT',
     cargo: 'Auxiliar de Logística',
+    telefono_codigo_pais: '+57',
+    telefono_numero: '3021234567',
+    telefono_whatsapp: '573021234567',
     activo: true
   },
   {
@@ -33,6 +42,9 @@ export const DEFAULT_USERS = [
     rol: 'Empleado',
     avatar: 'VR',
     cargo: 'Diseñadora de Moda',
+    telefono_codigo_pais: '+57',
+    telefono_numero: '3031234567',
+    telefono_whatsapp: '573031234567',
     activo: false
   }
 ];
