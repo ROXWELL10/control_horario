@@ -1,4 +1,5 @@
 import { construirTelefonoUsuario, validarTelefonoWhatsapp } from './telefono';
+import { enviarMensajeWhatsapp } from './envioWhatsapp';
 
 const STORAGE_KEY = 'sammers_whatsapp_otp_v1';
 const OTP_TTL_MS = 10 * 60 * 1000;
@@ -20,16 +21,6 @@ const generarCodigoOtp = () => {
   const bytes = new Uint32Array(1);
   crypto.getRandomValues(bytes);
   return String(bytes[0] % 1000000).padStart(6, '0');
-};
-
-const resolverEndpointEnvio = () => {
-  const sendUrl = String(import.meta.env.VITE_SERVITES_WHATSAPP_SEND_URL || '').trim();
-  if (sendUrl) return sendUrl;
-
-  const apiUrl = String(import.meta.env.VITE_SERVITES_WHATSAPP_API_URL || '').trim().replace(/\/+$/, '');
-  if (!apiUrl) return '';
-
-  return apiUrl.endsWith('/send') ? apiUrl : `${apiUrl}/send`;
 };
 
 const mensajeOtp = ({ nombre, codigo }) => {
@@ -62,41 +53,19 @@ export const solicitarCodigoOtpWhatsapp = async ({ codigoPais, celular, nombre }
 
   const telefono = validation.telefono;
   const codigo = generarCodigoOtp();
-  const endpoint = resolverEndpointEnvio();
   const message = mensajeOtp({ nombre, codigo });
 
-  if (!endpoint) {
+  const result = await enviarMensajeWhatsapp({
+    to: telefono.telefono_whatsapp,
+    message
+  });
+
+  if (result.ok) {
     guardarCodigo({ telefono_whatsapp: telefono.telefono_whatsapp, codigo });
-    console.info(`[OTP WhatsApp simulado] ${telefono.telefono_whatsapp}: ${codigo}`);
-    return { ok: true, modo: 'simulado', telefono, debugCodigo: codigo };
+    return { ok: true, modo: result.modo, telefono, debugCodigo: result.modo === 'simulado' ? codigo : undefined };
   }
 
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: telefono.telefono_whatsapp,
-        message
-      })
-    });
-
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok || payload.ok === false) {
-      return {
-        ok: false,
-        error: payload.detail || payload.message || 'No se pudo enviar el codigo por WhatsApp.'
-      };
-    }
-
-    guardarCodigo({ telefono_whatsapp: telefono.telefono_whatsapp, codigo });
-    return { ok: true, modo: 'servites', telefono };
-  } catch {
-    return {
-      ok: false,
-      error: 'No se pudo conectar con el bot de WhatsApp Servites.'
-    };
-  }
+  return { ok: false, error: result.error || 'No se pudo enviar el codigo por WhatsApp.' };
 };
 
 export const verificarCodigoOtpWhatsapp = ({ codigoPais, celular, codigoOtp }) => {

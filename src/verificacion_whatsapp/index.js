@@ -7,6 +7,12 @@ export {
   validarTelefonoWhatsapp
 } from './telefono';
 export {
+  enviarMensajeWhatsapp
+} from './envioWhatsapp';
+export {
+  notificarIngresoEmpleado
+} from './notificacionIngreso';
+export {
   solicitarCodigoOtpWhatsapp,
   verificarCodigoOtpWhatsapp
 } from './otpService';

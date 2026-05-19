@@ -17,3 +17,5 @@ El bot Servites debe aceptar:
 ```
 
 Si no hay endpoint configurado, usa OTP simulado en el navegador para desarrollo local.
+
+El mismo envio se reutiliza para avisar al administrador cuando un empleado inicia sesion.

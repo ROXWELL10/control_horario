@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { calculateNetTime } from '../utils/formatters';
 import { dbService } from '../services/db';
 import { supabase } from '../services/supabase';
+import { notificarIngresoEmpleado } from '../verificacion_whatsapp';
 
 const AppContext = createContext();
 
@@ -170,6 +171,18 @@ export const AppProvider = ({ children }) => {
 
   // --- AUTHENTICATION ACTIONS ---
 
+  const reportarIngresoEmpleado = ({ usuario, usuarios, metodoIngreso }) => {
+    void notificarIngresoEmpleado({ usuario, usuarios, metodoIngreso })
+      .then((result) => {
+        if (!result.ok) {
+          console.warn('No se pudo notificar el ingreso al administrador:', result.error);
+        }
+      })
+      .catch((err) => {
+        console.warn('No se pudo notificar el ingreso al administrador:', err);
+      });
+  };
+
   const signIn = async (email, password) => {
     if (!isSupabaseConfigured()) {
       // Local Mock Driver Login
@@ -186,6 +199,11 @@ export const AppProvider = ({ children }) => {
         const active = await dbService.getJornadaActiva(found.id);
         setActiveShift(active);
         setLoading(false);
+        reportarIngresoEmpleado({
+          usuario: found,
+          usuarios: uList,
+          metodoIngreso: 'Email y contraseña (modo local)'
+        });
         return { data: { user: found }, error: null };
       }
       return { error: { message: 'El correo electrónico no está registrado en el simulador local.' } };
@@ -193,6 +211,28 @@ export const AppProvider = ({ children }) => {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (!error && data?.user) {
+        try {
+          const uList = await dbService.getUsuarios();
+          const metadata = data.user.user_metadata || {};
+          const nombre = metadata.nombre || data.user.email.split('@')[0];
+          const profile = uList.find(u => u.id === data.user.id) || {
+            id: data.user.id,
+            nombre,
+            email: data.user.email,
+            rol: metadata.rol || 'Empleado',
+            cargo: metadata.cargo || 'Operario de Confección',
+            telefono_whatsapp: metadata.telefono_whatsapp || ''
+          };
+          reportarIngresoEmpleado({
+            usuario: profile,
+            usuarios: uList,
+            metodoIngreso: 'Email y contraseña (Supabase)'
+          });
+        } catch (notifyErr) {
+          console.warn('No se pudo preparar la notificación de ingreso:', notifyErr);
+        }
+      }
       return { data, error };
     } catch (err) {
       return { error: err };
